@@ -109,20 +109,21 @@ def visualize_event_counts_monthly(data):
     plt.show()
 
 def visualize_event_type(df):
-    # event_type에 따른 행의 개수 계산
+    # Calculate the number of rows for each event_type
     event_counts = df['event_type'].value_counts()
 
-    # 히스토그램 생성
+    # Create a histogram
     event_counts.plot(kind='bar', edgecolor='black')
 
-    # 그래프 제목과 축 레이블 설정
+    # Set title and axis labels
     plt.title('Event Type Count')
     plt.xlabel('Event Type')
     plt.ylabel('Count')
 
     plt.xticks(rotation=0)
-    # 그래프 표시
+    # Display the plot
     plt.show()
+
 
 def KFold(knn,x,y,n):
     # Train model with cv 5
@@ -133,61 +134,54 @@ def KFold(knn,x,y,n):
     print('cv_scores mean: {}'.format(np.mean(cv_scores)))
 
 def fill_category_code(df):
-    # null이 아닌 행만 사용하여 데이터 분할
+    # Utilize only non-null rows for data splitting
     not_null_data = df[~df['category_code'].isnull()]
     X = not_null_data[['category_id', 'price']]
     y = not_null_data['category_code']
 
-    # 데이터를 학습 및 테스트 세트로 분할 (hold-out method)
+    # Split data into train and test sets (hold-out method)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # KNN 모델 학습
+    # Train the KNN model
     knn_model = KNeighborsClassifier(n_neighbors=3)
-
-    # KNN 모델 다시 학습
     knn_model.fit(X_train, y_train)
 
-    # 테스트 세트에 대한 예측
-    y_pred = knn_model.predict(X_test)
-
-    # category_code의 null 값을 예측하여 채움
+    # Predict category_code for null values
     X_missing = df[df['category_code'].isnull()][['category_id', 'price']]
     predicted_category_codes = knn_model.predict(X_missing)
     df.loc[df['category_code'].isnull(), 'category_code'] = predicted_category_codes
 
-    # kfold로 성능 체크
-    KFold(knn_model, X,y,3)
+    # Check performance with k-fold cross-validation
+    print('Category code KNN')
+    KFold(knn_model, X, y, 3)
 
 def fill_brand(df):
-    # null이 아닌 행만 사용하여 데이터 분할
+    # Utilize only non-null rows for data splitting
     not_null_data = df[~df['brand'].isnull()]
     X = not_null_data[['category_id', 'price', 'product_id']]
     y = not_null_data['brand']
 
-    # 데이터를 학습 및 테스트 세트로 분할 (hold-out method)
+    # Split data into train and test sets (hold-out method)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # KNN 모델 학습
+    # Train the KNN model
     knn_model = KNeighborsClassifier(n_neighbors=3)
-
-    # KNN 모델 다시 학습
     knn_model.fit(X_train, y_train)
 
-    # 테스트 세트에 대한 예측
-    y_pred = knn_model.predict(X_test)
-
-    # category_code의 null 값을 예측하여 채움
+    # Predict brand for null values
     X_missing = df[df['brand'].isnull()][['category_id', 'price', 'product_id']]
     predicted_brand = knn_model.predict(X_missing)
     df.loc[df['brand'].isnull(), 'brand'] = predicted_brand
 
-    # kfold로 성능 체크
-    KFold(knn_model, X,y,3)
+    # Check performance with k-fold cross-validation
+    print('Brand KNN')
+    KFold(knn_model, X, y, 3)
+
 
 def label_encode_columns(df):
     label_encoder = LabelEncoder()
 
-    # 'event_type', 'category_code', 'brand' 열을 label encoding
+    # do label encoding 'event_type', 'category_code', 'brand'
     df['event_type'] = label_encoder.fit_transform(df['event_type'])
     df['category_code'] = label_encoder.fit_transform(df['category_code'].astype(str))
     df['brand'] = label_encoder.fit_transform(df['brand'].astype(str))
@@ -207,6 +201,7 @@ def robust(df, column_name):
 
 
 def find_optimal_clusters(data):
+    # Calculate SSE for different number of clusters
     sse = []
     for k in range(1, 11):
         kmeans = KMeans(n_clusters=k, random_state=42)
@@ -215,13 +210,13 @@ def find_optimal_clusters(data):
     return sse
 
 def visualize_elbow_method(sse):
+    # Visualize the Elbow Method plot
     plt.figure(figsize=(10, 6))
     plt.plot(range(1, 11), sse, marker='o')
     plt.xlabel('Number of clusters')
     plt.ylabel('SSE')
     plt.title('Elbow Method for Optimal Number of Clusters')
     plt.show()
-
 
 def scaler(identifier, new_df):
     '''
@@ -235,12 +230,13 @@ def scaler(identifier, new_df):
         elif identifier==1:    minMax(new_df, column)
         else:   robust(new_df, column)
 
-
 def apply_kmeans(data, n_clusters):
+    # Apply KMeans clustering
     kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(data)
     return kmeans.labels_
 
 def visualize_clusters(data, labels, n_clusters):
+    # Visualize clusters
     plt.figure()
     colors = ['r', 'g', 'b','c', 'm']
     for cluster in range(n_clusters):
@@ -253,13 +249,16 @@ def visualize_clusters(data, labels, n_clusters):
     plt.show()
 
 def runKmeans(n_clusters, new_df):
+    # Run KMeans clustering
     labels = apply_kmeans(new_df[['days_since_last_event', 'total_purchase_amount']], n_clusters)
     visualize_clusters(new_df, labels, n_clusters)
+
 
 #Hierarchical Agglomerative Clustering
 #single Linkage
 def runAgglomerative(data):
-    subset = data.sample(n=500, random_state=42) if len(data) > 500 else data  # Use a subset of the data
+    # Use a subset of the data
+    subset = data.sample(n=500, random_state=42) if len(data) > 500 else data
     linked = linkage(subset, 'single')
     plt.figure(figsize=(10, 7))
     dendrogram(linked, orientation='top', show_leaf_counts=True)
@@ -276,6 +275,7 @@ def apply_Agglomerative(data, n_clusters):
 
 def main():
 
+    # Save silhouette_scores
     cluster_score=[]
 
     pd.set_option('display.max_columns', None)
@@ -288,37 +288,43 @@ def main():
 
     extract_date_features(df)
 
-
+    # Data exploration
     visualize_event_counts_hourly(df)
     visualize_event_counts_monthly(df)
     visualize_event_type(df)
 
 
+    # Convert 'year', 'month', 'day', and 'hour' columns to a datetime object
     df['event_time'] = pd.to_datetime(df[['year', 'month', 'day', 'hour']])
-    df_sorted = df.sort_values(by=['user_id', 'event_time'], ascending=[True, False])  # 각 user_id 별로 최신 이벤트를 찾기 위해 정렬
-    latest_events = df_sorted.drop_duplicates(subset=['user_id'], keep='first').copy()  # 최신 이벤트만
 
-    current_date = pd.to_datetime(datetime.now())  # 현재 날짜를 Timestamp 형식으로 변환하여 사용
-    latest_events['days_since_last_event'] = (current_date - latest_events['event_time']).dt.days  # 차이 구하기
+    # Sort the DataFrame by 'user_id' and 'event_time' to find the latest event for each user
+    df_sorted = df.sort_values(by=['user_id', 'event_time'], ascending=[True, False])
 
+    # Keep only the latest event for each user
+    latest_events = df_sorted.drop_duplicates(subset=['user_id'], keep='first').copy()
+
+    # Calculate the number of days since the last event for each user
+    current_date = pd.to_datetime(datetime.now())
+    latest_events['days_since_last_event'] = (current_date - latest_events['event_time']).dt.days
+
+    # Calculate the count of events for each user
     event_counts = df['user_id'].value_counts().reset_index()
-    event_counts.columns = ['user_id', 'event_count']  # 각 user_id별 event 발생 횟수 계산
+    event_counts.columns = ['user_id', 'event_count']
 
+    # Calculate the total purchase amount for each user
     purchase_sums = df[df['event_type'] == 'purchase'].groupby('user_id')['price'].sum().reset_index()
-    purchase_sums.columns = ['user_id', 'total_purchase_amount']  # 구매 합산
+    purchase_sums.columns = ['user_id', 'total_purchase_amount']
 
+    # Merge the latest events, event counts, and purchase sums DataFrames
     new_df = pd.merge(latest_events, event_counts, on='user_id')
     new_df = pd.merge(new_df, purchase_sums, on='user_id', how='left')
 
-    new_df = new_df.drop(columns=['event_time'])
-    new_df = new_df.drop(columns=['user_session'])
+    # Drop unnecessary columns
+    new_df = new_df.drop(columns=['event_time', 'user_session'])
 
-    fill_category_code(new_df)
-    fill_brand(new_df)
+    # Fill missing values in the DataFrame with 0 for the 'purchase' event type
+    new_df = new_df.fillna(0)
 
-    label_encode_columns(new_df)
-
-    new_df = new_df.fillna(0)  # purchase가 NaN 값인 데이터 0으로 변경
 
     '''
     ==============================================================================================================
@@ -328,13 +334,13 @@ def main():
 
         scaler(i, new_df)
 
-
+        # Remove outliers
         new_df = new_df[(new_df['price'] >= -3) & (new_df['price'] <= 3)]
         new_df = new_df[(new_df['days_since_last_event'] >= -3) & (new_df['days_since_last_event'] <= 3)]
         new_df = new_df[(new_df['event_count'] >= -3) & (new_df['event_count'] <= 3)]
 
 
-
+        # Show elbow
         sse = find_optimal_clusters(new_df[['days_since_last_event', 'total_purchase_amount']])
         visualize_elbow_method(sse)
 
@@ -343,21 +349,22 @@ def main():
 
         for n_clusters in range(2,6):
             '''
-            클러스터링은 원본 데이터로 하는데, 
-            실루엣 점수는 너무 오래 걸리니까 1만개만 샘플링해서 계산
+            clustering with all rows, but calculate silhouette_score with 10000 random samples
+            because of overburden runtime
             '''
             # K-means
             runKmeans(n_clusters, new_df)
 
-            # 랜덤으로 추출
+            # Random sampling
             sampled_df = new_df.sample(n=10000, replace=False)
 
-            # 점수 출력 (Kmeans)
+            # Show score (Kmeans)
             Kmeans_labels = apply_kmeans(sampled_df[['days_since_last_event', 'total_purchase_amount']], n_clusters=n_clusters)
             Kmeans_silhouette_avg = silhouette_score(sampled_df[['days_since_last_event', 'total_purchase_amount']], Kmeans_labels)
 
             print(f' Kmeans When n_clusters: {n_clusters} silhouette_avg: {Kmeans_silhouette_avg}')
-            # 점수 저장
+
+            # Save score
             data={}
             if i==0:  data['scaler']='StandardScaler'
             elif i==1:  data['scaler']='MinMaxScaler'
@@ -367,12 +374,12 @@ def main():
             data['score']=Kmeans_silhouette_avg
             cluster_score.append(data)
 
-            # 점수 출력 (Agglomerative clustering)
+            # Show score (Agglomerative clustering)
             Agglomerative_labels=apply_Agglomerative(sampled_df[['days_since_last_event', 'total_purchase_amount']], n_clusters=n_clusters)
             Agg_silhouette_avg=silhouette_score(sampled_df[['days_since_last_event', 'total_purchase_amount']], Agglomerative_labels)
 
             print(f'Agglomerative When n_clusters: {n_clusters} silhouette_avg: {Agg_silhouette_avg}')
-            # 점수 저장
+            # Save score
             data={}
             if i==0:  data['scaler']='StandardScaler'
             elif i==1:  data['scaler']='MinMaxScaler'
@@ -383,7 +390,7 @@ def main():
             cluster_score.append(data)
 
 
-        # 시각화
+        # Visualize
         cluster_lists = [2, 3, 4, 5]
         n_cols = len(cluster_lists)
 
@@ -392,13 +399,16 @@ def main():
         # Subplot setup
         fig, axs = plt.subplots(figsize=(4 * n_cols, 4), nrows=1, ncols=n_cols)
 
-        for ind, n_cluster in enumerate(cluster_lists):  # n이 2, 3, 4, 5일 때
+        for ind, n_cluster in enumerate(cluster_lists):  # For n being 2, 3, 4, 5
+            # Perform KMeans clustering
             clusterer = KMeans(n_clusters=n_cluster)
             cluster_labels = clusterer.fit_predict(X_features)
+            # Calculate silhouette score
             sil_avg = silhouette_score(X_features, cluster_labels)
             sil_values = silhouette_samples(X_features, cluster_labels)
 
             y_lower = 10
+            # Set subplot title
             axs[ind].set_title('Number of Clusters: ' + str(n_cluster) + '\n' \
                                                                          'Silhouette Score: ' + str(round(sil_avg, 3)))
             axs[ind].set_xlabel("The silhouette coefficient values")
@@ -427,19 +437,20 @@ def main():
         plt.tight_layout()
         plt.show()
 
-    # score를 기준으로 데이터 정렬
-    sorted_data = sorted(cluster_score, key=lambda x: x['score'], reverse=True)
+        # Sort data based on scores
+        sorted_data = sorted(cluster_score, key=lambda x: x['score'], reverse=True)
 
-    # 상위 5개 데이터 추출
-    top_5_data = sorted_data[:5]
+        # Extract top 5 combinations
+        top_5_data = sorted_data[:5]
 
-    print('Top 5 combination')
-    # 상위 5개 데이터의 각 key, value 출력
-    for item in top_5_data:
-        print("Data:")
-        for key, value in item.items():
-            print(f"{key}: {value}")
-        print()  # 줄 바꿈
+        print('Top 5 combination')
+        # Print each key and value of the top 5 combinations
+        for item in top_5_data:
+            print("Data:")
+            for key, value in item.items():
+                print(f"{key}: {value}")
+            print()
+
 
 
 
