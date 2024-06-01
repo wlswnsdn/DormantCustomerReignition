@@ -322,6 +322,12 @@ def main():
     # Drop unnecessary columns
     new_df = new_df.drop(columns=['event_time', 'user_session'])
 
+    fill_category_code(new_df)
+    fill_brand(new_df)
+
+    # Just label_encoding because excessive features creation caused by one-hot
+    label_encode_columns(new_df)
+
     # Fill missing values in the DataFrame with 0 for the 'purchase' event type
     new_df = new_df.fillna(0)
 
