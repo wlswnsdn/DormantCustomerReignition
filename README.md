@@ -1,5 +1,38 @@
 # DormantCustomerReignition
 
+Objectives
+
+User behavior analysis is essential in modern business, helping us understand reactions to products or services and forming a basis for marketing strategies. Analyzing the relationship between time and customer purchases reveals purchase volumes, allowing us to develop strategies to boost sales using coupons.
+
+Key Steps:
+
+Time Slot Analysis:
+
+Aggregate hourly customer purchases to create time-series data.
+Visualize data to identify periods of increasing and decreasing sales.
+Distribute coupons strategically before active periods and during inactive ones to boost sales.
+Dormant Customer Strategies:
+
+Clustering:
+
+Classify dormant customers into two groups: low-purchase and high-value dormant customers.
+
+Low-Purchase Customers:
+
+Minimal purchase frequency and amount due to budget constraints, dissatisfaction, or decision-making difficulties.
+
+Strategies: personalized recommendations, VIP benefits, free shipping/returns, product reviews, improved customer service, and secure transactions.
+
+High-Value Dormant Customers:
+
+Previously significant purchases but currently inactive due to one-time purchases, shifting interests, or competitor products.
+
+Strategies: personalized recommendations, repeat purchase discounts, special promotions, premium services, product upgrades, and membership programs.
+
+Goal:
+Using data on customer responses to product alerts and coupons, we can personalize approaches for each group to activate dormant customers and prevent churn.
+
+
 Architecture
 
 1. Data Loading and Initial Analysis
